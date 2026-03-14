@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Intermediate Task Tracker</title>
+
+<style>
+/* ===== BLURRED BACKGROUND ===== */
+
+* {
+    box-sizing: border-box;
+}
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("https://images.unsplash.com/photo-1506784365847-bbad939e9335") no-repeat center center/cover;
+    filter: blur(8px);
+    z-index: -1;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    position: relative;
+}
+
+/* NAVBAR */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.75);
+    padding: 15px;
+    color: white;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+/* SECTIONS */
+section {
+    display: none;
+    padding: 20px;
+}
+
+section.active {
+    display: block;
+}
+
+/* CONTACT FORM */
+form {
+    background: rgba(255,255,255,0.9);
+    max-width: 420px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* INPUTS */
+input, textarea, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    font-family: inherit;
+}
+
+button {
+    background: #222;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* TASK BOX */
+.task-box {
+    background: rgba(255,255,255,0.9);
+    max-width: 650px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 10px;
+    background: #eee;
+    border-radius: 6px;
+}
+
+li button {
+    width: auto;
+    padding: 5px 8px;
+    margin-left: 5px;
+}
+
+.completed {
+    text-decoration: line-through;
+    color: green;
+}
+
+small {
+    font-size: 12px;
+    color: gray;
+}
+
+form {
+    display:block;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <div>Task Tracker</div>
+    <div>
+        <a onclick="showSection('contact')">Contact</a>
+        <a onclick="showSection('allTasks')">All Tasks</a>
+        <a onclick="showSection('pendingTasks')">Pending</a>
+        <a onclick="showSection('completedTasks')">Completed</a>
+    </div>
+</nav>
+
+<!-- CONTACT -->
+<section id="contact" class="active">
+<h2 style="text-align: center;">Contact Form</h2>
+<form id="contactForm">
+    <input type="text" id="username" placeholder="Enter your name" required>
+    <input type="email" id="email" placeholder="Enter your email" required>
+    <textarea id="message" rows="4" placeholder="Enter your message" required></textarea>
+    <button type="submit">Submit</button>
+</form>
+</section>
+
+<!-- ALL TASKS -->
+<section id="allTasks">
+<h2 id="welcomeText"></h2>
+<div class="task-box">
+    <input type="text" id="taskInput" placeholder="Enter task">
+    <button onclick="addTask()">Add Task</button>
+    <ul id="taskList"></ul>
+</div>
+</section>
+
+<!-- PENDING -->
+<section id="pendingTasks">
+<h2>Pending Tasks</h2>
+<ul id="pendingList"></ul>
+</section>
+
+<!-- COMPLETED -->
+<section id="completedTasks">
+<h2>Completed Tasks</h2>
+<ul id="completedList"></ul>
+</section>
+
+<script>
+let tasks = [];
+
+/* SECTION SWITCH */
+function showSection(id) {
+    document.querySelectorAll("section").forEach(sec =>
+        sec.classList.remove("active")
+    );
+    document.getElementById(id).classList.add("active");
+}
+
+/* CONTACT FORM */
+document.getElementById("contactForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    welcomeText.innerText = "Welcome, " + username.value;
+    this.reset();
+    showSection("allTasks");
+});
+
+/* ADD TASK */
+function addTask() {
+    if (taskInput.value.trim() === "") return;
+
+    tasks.push({
+        id: Date.now(),
+        text: taskInput.value,
+        completed: false,
+        time: new Date().toLocaleString()
+    });
+
+    taskInput.value = "";
+    renderTasks();
+}
+
+/* COMPLETE */
+function completeTask(id) {
+    tasks.forEach(t => {
+        if (t.id === id) t.completed = true;
+    });
+    renderTasks();
+}
+
+/* DELETE */
+function deleteTask(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    renderTasks();
+}
+
+/* RENDER */
+function renderTasks() {
+    taskList.innerHTML = "";
+    pendingList.innerHTML = "";
+    completedList.innerHTML = "";
+
+    tasks.forEach(task => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <div>
+                <span class="${task.completed ? 'completed' : ''}">
+                    ${task.text}
+                </span><br>
+                <small>Created: ${task.time}</small>
+            </div>
+            <div>
+                ${!task.completed ? `<button onclick="completeTask(${task.id})">✔</button>` : ""}
+                <button onclick="deleteTask(${task.id})">❌</button>
+            </div>
+        `;
+
+        taskList.appendChild(li);
+
+        const copy = li.cloneNode(true);
+        if (task.completed) completedList.appendChild(copy);
+        else pendingList.appendChild(copy);
+    });
+}
+</script>
+
+</body>
+</html>

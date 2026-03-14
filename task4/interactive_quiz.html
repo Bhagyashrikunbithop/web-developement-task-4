@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Interactive Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+body{
+    margin:0;
+    min-height:100vh;
+    background:url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f")
+    no-repeat center/cover;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+.container{
+    width:100%;
+    max-width:700px;
+    text-align:center;
+}
+h1{
+    color:#fff;
+    margin-bottom:15px;
+}
+.card{
+    background:#fff;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,.3);
+    margin-bottom:20px;
+}
+.button-group{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+}
+button{
+    padding:10px 16px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    background:#ffd166;
+    font-weight:bold;
+    transition:.3s;
+}
+button:hover{
+    transform:scale(1.08);
+}
+button.selected{
+    background:#06d6a0;
+    color:#fff;
+}
+button:disabled{
+    background:#ccc;
+}
+.hidden{
+    display:none;
+}
+.options button{
+    width:100%;
+    max-width:480px;
+    margin:6px auto;
+    display:block;
+}
+.correct{background:#4caf50!important;color:#fff;}
+.wrong{background:#f44336!important;color:#fff;}
+
+.timer{
+    color:#e63946;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+.progress-bar{
+    background:#ddd;
+    border-radius:20px;
+    overflow:hidden;
+    margin-bottom:15px;
+}
+.progress{
+    height:10px;
+    width:0%;
+    background:#06d6a0;
+    transition:.3s;
+}
+.nav{
+    display:flex;
+    justify-content:space-between;
+    margin-top:15px;
+}
+
+/* Trophy */
+.trophy{
+    font-size:70px;
+    animation:bounce 1s infinite;
+}
+@keyframes bounce{
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.2);}
+}
+
+/* Confetti Canvas */
+#confetti{
+    position:fixed;
+    top:0;left:0;
+    pointer-events:none;
+    z-index:999;
+}
+
+/* ===== MEDIA QUERIES ===== */
+
+/* Tablets */
+@media (max-width: 768px) {
+    .container{
+        max-width:95%;
+    }
+    h1{
+        font-size:22px;
+    }
+    .card{
+        padding:20px;
+    }
+    button{
+        font-size:14px;
+    }
+}
+
+/* Mobile (safe fallback) */
+@media (max-width: 480px) {
+    h1{
+        font-size:20px;
+    }
+    .card{
+        padding:16px;
+    }
+    .trophy{
+        font-size:55px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="container">
+<h1>🎯 Interactive Quiz App</h1>
+
+<!-- SETUP -->
+<div class="card" id="setup">
+<h3>Select Quiz Category</h3>
+<div class="button-group">
+<button onclick="selectCategory(this,19)">Mathematics</button>
+<button onclick="selectCategory(this,17)">Science</button>
+<button onclick="selectCategory(this,10)">English</button>
+<button onclick="selectCategory(this,23)">History</button>
+</div>
+
+<h3>Select Number of Questions</h3>
+<div class="button-group">
+<button onclick="selectCount(this,10)">10</button>
+<button onclick="selectCount(this,15)">15</button>
+<button onclick="selectCount(this,20)">20</button>
+</div>
+
+<br>
+<button id="startBtn" onclick="startQuiz()" disabled>Start Quiz</button>
+</div>
+
+<!-- QUIZ -->
+<div class="card hidden" id="quiz">
+<div class="timer" id="timer">Time Left: 00:00</div>
+
+<div class="progress-bar">
+<div class="progress" id="progress"></div>
+</div>
+
+<h3 id="question"></h3>
+<div class="options" id="options"></div>
+
+<div class="nav">
+<button onclick="prevQuestion()">Previous</button>
+<button onclick="nextQuestion()">Next</button>
+</div>
+</div>
+
+<!-- RESULT -->
+<div class="card hidden" id="result">
+<div id="trophyBox"></div>
+<h3 id="resultText"></h3>
+<p>
+Questions: <b id="qTotal"></b> |
+Correct: <b id="qCorrect"></b>
+</p>
+<button onclick="restartQuiz()">Attempt Again</button>
+</div>
+
+<!-- JOKE -->
+<div class="card">
+<h3>😂 Joke Section</h3>
+<p id="joke">Click below to load a joke</p>
+<button onclick="loadJoke()">Get Joke</button>
+</div>
+</div>
+
+<script>
+let category=null, questionCount=null;
+let questions=[], answers=[], currentIndex=0;
+let timer=null, timeLeft=0;
+
+/* Selection */
+function selectCategory(btn,val){
+    category=val;
+    document.querySelectorAll("#setup .button-group:nth-of-type(1) button")
+    .forEach(b=>b.classList.remove("selected"));
+    btn.classList.add("selected");
+    checkStart();
+}
+function selectCount(btn,val){
+    questionCount=val;
+    document.querySelectorAll("#setup .button-group:nth-of-type(2) button")
+    .forEach(b=>b.classList.remove("selected"));
+    btn.classList.add("selected");
+    checkStart();
+}
+function checkStart(){
+    document.getElementById("startBtn").disabled=!(category&&questionCount);
+}
+
+/* Start Quiz */
+function startQuiz(){
+fetch(`https://opentdb.com/api.php?amount=${questionCount}&category=${category}&type=multiple`)
+.then(res=>res.json())
+.then(data=>{
+    questions=data.results;
+    answers=new Array(questions.length).fill(null);
+    currentIndex=0;
+    document.getElementById("setup").classList.add("hidden");
+    document.getElementById("quiz").classList.remove("hidden");
+    timeLeft=questionCount*30;
+    updateTimer();
+    startTimer();
+    loadQuestion();
+    updateProgress();
+});
+}
+
+/* Timer */
+function updateTimer(){
+    let m=Math.floor(timeLeft/60);
+    let s=timeLeft%60;
+    document.getElementById("timer").innerText=
+    `Time Left: ${m}:${s<10?"0":""}${s}`;
+}
+function startTimer(){
+clearInterval(timer);
+timer=setInterval(()=>{
+    timeLeft--;
+    updateTimer();
+    if(timeLeft<=0)showResult();
+},1000);
+}
+
+/* Questions */
+function loadQuestion(){
+let q=questions[currentIndex];
+document.getElementById("question").innerHTML=
+`Q${currentIndex+1}. ${q.question}`;
+
+let opts=[...q.incorrect_answers,q.correct_answer].sort(()=>Math.random()-0.5);
+let div=document.getElementById("options");
+div.innerHTML="";
+
+opts.forEach(opt=>{
+    let b=document.createElement("button");
+    b.innerHTML=opt;
+
+    if(answers[currentIndex]){
+        b.disabled=true;
+        if(opt===q.correct_answer) b.classList.add("correct");
+        if(opt===answers[currentIndex] && opt!==q.correct_answer)
+            b.classList.add("wrong");
+    }
+
+    b.onclick=()=>selectAnswer(b,opt);
+    div.appendChild(b);
+});
+}
+
+/* Answer */
+function selectAnswer(btn,ans){
+if(answers[currentIndex])return;
+answers[currentIndex]=ans;
+let correct=questions[currentIndex].correct_answer;
+
+document.querySelectorAll("#options button").forEach(b=>{
+    b.disabled=true;
+    if(b.innerHTML===correct)b.classList.add("correct");
+    if(b.innerHTML===ans && ans!==correct)b.classList.add("wrong");
+});
+}
+
+/* Navigation */
+function nextQuestion(){
+if(currentIndex<questions.length-1){
+currentIndex++;
+loadQuestion();
+updateProgress();
+}else showResult();
+}
+function prevQuestion(){
+if(currentIndex>0){
+currentIndex--;
+loadQuestion();
+updateProgress();
+}
+}
+function updateProgress(){
+document.getElementById("progress").style.width=
+((currentIndex+1)/questions.length)*100+"%";
+}
+
+/* Result */
+function showResult(){
+clearInterval(timer);
+document.getElementById("quiz").classList.add("hidden");
+document.getElementById("result").classList.remove("hidden");
+
+let score=answers.filter((a,i)=>a===questions[i].correct_answer).length;
+document.getElementById("qTotal").innerText=questionCount;
+document.getElementById("qCorrect").innerText=score;
+document.getElementById("trophyBox").innerHTML="";
+
+if(score>questionCount/2){
+document.getElementById("trophyBox").innerHTML='<div class="trophy">🏆</div>';
+document.getElementById("resultText").innerHTML=
+`Congratulations 🎉<br>You scored ${score}/${questionCount}`;
+startConfetti();
+}else{
+document.getElementById("resultText").innerHTML=
+`Better luck next time 💪<br>You scored ${score}/${questionCount}`;
+}
+}
+
+/* Restart */
+function restartQuiz(){
+stopConfetti();
+clearInterval(timer);
+category=null;questionCount=null;
+questions=[];answers=[];
+document.getElementById("result").classList.add("hidden");
+document.getElementById("setup").classList.remove("hidden");
+document.getElementById("startBtn").disabled=true;
+document.querySelectorAll(".selected").forEach(b=>b.classList.remove("selected"));
+}
+
+/* Confetti */
+const canvas=document.getElementById("confetti");
+const ctx=canvas.getContext("2d");
+function resizeCanvas(){
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize",resizeCanvas);
+
+let confetti=[],confettiInt=null;
+
+function startConfetti(){
+stopConfetti();
+confetti=Array.from({length:120},()=>({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height-canvas.height,
+s:Math.random()*6+4,
+c:`hsl(${Math.random()*360},100%,50%)`,
+v:Math.random()*3+2
+}));
+confettiInt=setInterval(()=>{
+ctx.clearRect(0,0,canvas.width,canvas.height);
+confetti.forEach(p=>{
+ctx.fillStyle=p.c;
+ctx.fillRect(p.x,p.y,p.s,p.s);
+p.y+=p.v;
+});
+},20);
+}
+function stopConfetti(){
+clearInterval(confettiInt);
+ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+/* Joke */
+function loadJoke(){
+fetch("https://official-joke-api.appspot.com/random_joke")
+.then(r=>r.json())
+.then(j=>document.getElementById("joke").innerText=
+`${j.setup} — ${j.punchline}`);
+}
+</script>
+
+</body>
+</html>
