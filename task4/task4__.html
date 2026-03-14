@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Portfolio | Creative Developer</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="task4__.css">
+</head>
+<body>
+
+<nav id="navbar">
+    <div class="logo">PORTFOLIO<span>.</span></div>
+    <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#contact" class="btn-nav">Contact</a></li>
+    </ul>
+</nav>
+
+<section id="home" class="hero">
+    <div class="hero-content">
+        <span class="badge">Available for projects</span>
+        <h1>Crafting Digital <span class="gradient-text">Experiences</span></h1>
+        <p>I build high-performance, beautiful, and responsive web applications with a focus on user experience.</p>
+
+        <div class="hero-btns">
+            <a href="#projects" class="btn-primary">View My Work</a>
+            <a href="#contact" class="btn-secondary">Let's Talk</a>
+        </div>
+    </div>
+</section>
+
+<section id="about">
+    <div class="container">
+        <div class="about-text">
+            <h2>About Me</h2>
+            <p>
+                I'm a developer who bridges the gap between design and code.
+                I don't just write scripts; I solve problems using modern technology stacks.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section id="projects">
+    <div class="container">
+        <div class="section-header">
+            <h2>Featured Projects</h2>
+            <p>A selection of my recent work</p>
+        </div>
+
+        <div class="project-grid">
+
+            <div class="card">
+                <div class="card-body">
+                    <h3>Task Manager</h3>
+                    <p>A persistent, To-Do using localStorage to track task 
+                        lifecycles, timestamps, and progress across browser sessions.</p>
+                    <a href="task_manager.html" target="_blank" class="project-link">
+            View Case Study <i class="fas fa-arrow-right"></i>
+        </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h3>E-Commerse Dashboard</h3>
+                    <p>Building an interactive e-commerce interface that dynamically filters,
+                         sorts, and renders a product dataset based on real-time user input.</p>
+                    <a href="task4_shoping.html" target="_blank" class="project-link">
+    View Case Study <i class="fas fa-arrow-right"></i>
+</a>
+        </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h3>Interactive Quiz</h3>
+                    <p>An interactive quiz website that lets users choose categories, answer timed 
+                        questions, track progress and scores,
+                         and enjoy fun features like confetti animations and a joke generator.</p>
+                    <a href="interactive_quiz.html" target="_blank" class="project-link">
+    View Case Study <i class="fas fa-arrow-right"></i>
+</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section id="contact">
+    <div class="container">
+        <div class="contact-box">
+            <h2>Get In Touch</h2>
+            <p>Have a project in mind? Let's build something amazing together.</p>
+
+            <form>
+                <div class="form-group">
+                    <input type="text" placeholder="Full Name" required>
+                    <input type="email" placeholder="Email Address" required>
+                </div>
+
+                <textarea placeholder="Tell me about your project..." rows="5"></textarea>
+
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Bhagyashri Kunbithop. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
